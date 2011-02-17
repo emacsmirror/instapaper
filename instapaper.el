@@ -1,5 +1,16 @@
-;; instapaper.el - add URLs to instapaper from emacs
+;; instapaper.el --- add URLs to instapaper from emacs
 ;; Copyright (C) 2011 Jason F. McBrayer
+
+;; Author: Jason F. McBrayer <jmcbray@carcosa.net>
+;; Last update: 2011-02-17
+;; Version: 0.8
+;; URL: htts://bitbucket.org/jfm/emacs-instapaper
+;; Contributors:
+
+;; Instapaper.el is a set of functions to add urls to instapaper, a
+;; simple tool to save web pages for reading later. Instapaper is at
+;; https://www.instapaper.com/. This is not an official instapaper
+;; client.
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -14,20 +25,29 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+;; Requirements:
+;; url.el, found in Emacs 22 or later.
+
+;; Installation
+;; Put instapaper.el somewhere on your load-path
+;; (require 'instapaper)
+;; M-x customize-group instapaper
+;; Note that passwords are not required on instapaper. You must have
+;; an instapaper account ot use this package; it will not create one
+;; for you.
+
+;; Use
+;; To save a url to read later, use M-x instapaper-add.
+
+;; Roadmap
+;; 0.8:      Add urls successfully
+;; 0.9:      More convenient functions for adding url at point or url of
+;;           current buffer.
+;; 1.0:      Better error handling
+;; post-1.0: Add reading functions, maybe.
+
+
 (require 'url)
-
-;; Adding URLs to an Instapaper account
-
-;; URL: https://www.instapaper.com/api/add
-
-;; Parameters:
-
-;;     username and password (Or you can pass the username and password via HTTP Basic Auth.)
-;;     url
-;;     title — optional, plain text, no HTML, UTF-8. If omitted or empty, Instapaper will crawl the URL to detect a title.
-;;     selection — optional, plain text, no HTML, UTF-8. Will show up as the description under an item in the interface. Some clients use this to describe where it came from, such as the text of the source Twitter post when sending a link from a Twitter client.
-;;     redirect=close — optional. Specifies that, instead of returning the status code, the resulting page should show an HTML “Saved!” notification that attempts to close its own window with Javascript after a short delay. This is useful if you’re sending people directly to /api/add URLs from a web application.
-;;     jsonp — optional. See JSONP.
 
 (defvar instapaper-api-base "https://www.instapaper.com/api/"
   "Base URL for all instapaper API functions")
@@ -47,10 +67,29 @@
   :group 'instapaper)
 
 
-(defun instapaper-add (url)
+(defun instapaper-add (url &optional title selection)
   "Add url to instapaper"
   (interactive "sURL: ")
-  (url-retrieve instapaper-add-url 'instapaper-add-callback '(url)))
+  (let* ((url-request-method "POST")
+         (url-request-extra-headers
+          '(("Content-Type" . "application/x-www-form-urlencoded")))
+         (url-request-data (concat "username=" (url-hexify-string instapaper-username) "&"
+                                   "password=" (url-hexify-string instapaper-password) "&"
+                                   "url=" (url-hexify-string url) "&"
+                                   (if title (concat "title="
+                                                     (url-hexify-string title) "&") nil)
+                                   (if selection (concat "selection="
+                                                         (url-hexify-string selection)) nil))))
+    (message "url-request-data: %s" url-request-data)
+    (url-retrieve instapaper-add-url 'instapaper-add-callback (list url title selection) t)))
 
 (defun instapaper-add-callback (status url &optional title selection)
-  "Callback for url-retrieve to add a URL to instapaper.")
+  "Callback for url-retrieve to add a URL to instapaper."
+  (message url)
+  (if status
+      (message "FIXME: print failure method %s" status)
+    (message "Successfully added URL %s to instapaper." url))
+  (unless (get-buffer-process (current-buffer))
+    (kill-buffer (current-buffer))))
+
+(provide 'instapaper)

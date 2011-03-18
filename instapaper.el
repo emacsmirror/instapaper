@@ -48,6 +48,7 @@
 
 
 (require 'url)
+(require 'browse-url)
 
 (defvar instapaper-api-base "https://www.instapaper.com/api/"
   "Base URL for all instapaper API functions")
@@ -91,5 +92,10 @@
     (message "Successfully added URL %s to instapaper." url))
   (unless (get-buffer-process (current-buffer))
     (kill-buffer (current-buffer))))
+
+(defun instapaper-add-at-point (&optional title selection)
+  "Add url at point to instapaper"
+  (interactive)
+  (instapaper-add (browse-url-url-at-point) title selection))
 
 (provide 'instapaper)

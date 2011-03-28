@@ -98,4 +98,21 @@
   (interactive)
   (instapaper-add (browse-url-url-at-point) title selection))
 
+(condition-case err
+    (progn
+      (require 'w3m)
+      (defun instapaper-add-from-w3m (url &optional title selection)
+        "Add the most likely URL from w3m to instapaper
+Most likely URL is defined in order as link at point, url at point, selection,
+or url of current page."
+        (interactive (list (w3m-input-url
+                            nil
+                            (or (w3m-anchor)
+                                (w3m-active-region-or-url-at-point)
+                                w3m-current-url)
+                            nil nil 'feeling-lucky)))
+        (instapaper-add url title selection))
+      (define-key w3m-mode-map "i" 'instapaper-add-from-w3m))
+  (file-error t))
+
 (provide 'instapaper)

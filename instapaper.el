@@ -27,17 +27,25 @@
 
 ;; Requirements:
 ;; url.el, found in Emacs 22 or later.
+;; w3m.el is recommended but not required.
 
 ;; Installation
 ;; Put instapaper.el somewhere on your load-path
 ;; (require 'instapaper)
 ;; M-x customize-group instapaper
+;;
+;; Recommended keybindings:
+;; (define-key global-map "\C-ci" instapaper-add-at-point)
+;; (define-key w3m-mode-map "i" 'instapaper-add-from-w3m)
+;;
 ;; Note that passwords are not required on instapaper. You must have
 ;; an instapaper account ot use this package; it will not create one
 ;; for you.
+;;
 
 ;; Use
-;; To save a url to read later, use M-x instapaper-add.
+;; To save a url to read later, use M-x instapaper-add,
+;; instapaper-add-at-point, or instapaper-add-from-w3m.
 
 ;; Roadmap
 ;; 0.8:      Add urls successfully
@@ -56,6 +64,9 @@
   "URL for method for validating an instapaper username and password")
 (defvar instapaper-add-url (concat instapaper-api-base "add")
   "URL for method for adding a URL to instapaper")
+
+(defconst instapaper-version "0.9"
+  "Version of instapaper.el")
 
 (defcustom instapaper-username ""
   "Username or email address to use for instapaper authentication"
@@ -102,7 +113,7 @@
     (progn
       (require 'w3m)
       (defun instapaper-add-from-w3m (url &optional title selection)
-        "Add the most likely URL from w3m to instapaper
+        "Prompt, then add the most likely URL from w3m to instapaper.
 Most likely URL is defined in order as link at point, url at point, selection,
 or url of current page."
         (interactive (list (w3m-input-url
@@ -111,8 +122,8 @@ or url of current page."
                                 (w3m-active-region-or-url-at-point)
                                 w3m-current-url)
                             nil nil 'feeling-lucky)))
-        (instapaper-add url title selection))
-      (define-key w3m-mode-map "i" 'instapaper-add-from-w3m))
-  (file-error t))
+        (instapaper-add url title selection)))
+  (file-error
+   (message "w3m not available; instapaper support for w3m not loaded.")))
 
 (provide 'instapaper)

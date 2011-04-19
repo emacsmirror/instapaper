@@ -36,6 +36,7 @@
 ;;
 ;; Recommended keybindings:
 ;; (define-key global-map "\C-ci" instapaper-add-at-point)
+;; (define-key identica-mode-map "i" 'instapaper-add-at-point)
 ;; (define-key w3m-mode-map "i" 'instapaper-add-from-w3m)
 ;;
 ;; Note that passwords are not required on instapaper. You must have
@@ -93,7 +94,9 @@
                                    (if selection (concat "selection="
                                                          (url-hexify-string selection)) nil))))
     (message "url-request-data: %s" url-request-data)
-    (url-retrieve instapaper-add-url 'instapaper-add-callback (list url title selection) t)))
+    (if (>= emacs-major-version 24)
+        (url-retrieve instapaper-add-url 'instapaper-add-callback (list url title selection) t)
+      (url-retrieve instapaper-add-url 'instapaper-add-callback (list url title selection)))))
 
 (defun instapaper-add-callback (status url &optional title selection)
   "Callback for url-retrieve to add a URL to instapaper."
